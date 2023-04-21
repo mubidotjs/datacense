@@ -6,7 +6,7 @@ connectToDatabase();
 const grandpaSchema = mongoose.Schema(
   {
     id: {
-      type: String,
+      type: Number,
       required: true,
     },
     name: {

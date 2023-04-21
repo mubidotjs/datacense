@@ -35,7 +35,11 @@ const users = () => {
 
   const getGrandpas = () => {
     axios
-      .get("/api/grandpa/all")
+      .get("/api/grandpa/all", {
+        headers: {
+          Authorization: `Bearer ${auth}`,
+        },
+      })
       .then((res) => {
         // console.log(res.data);
         if (res.data) {

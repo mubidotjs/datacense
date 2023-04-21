@@ -20,10 +20,17 @@ const AddUsers = () => {
   );
   const [grandpa, setGranpa] = useState("");
   const [grandpas, setGrandpas] = useState([]);
-  const [id, setId] = useState("");
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [veteran, setVeteran] = useState("");
+  const [grandpaId, setGrandpaId] = useState("");
+  const [grandpaName, setGrandpaName] = useState("");
+  const [grandpaAge, setGrandpaAge] = useState("");
+  const [grandpaVeteran, setGrandpaVeteran] = useState("");
+  const [child, setChild] = useState({
+    grandpa: "",
+    id: "",
+    name: "",
+    age: "",
+    veteran: "",
+  });
   const [children, setChildren] = useState([]);
 
   useEffect(() => {
@@ -36,9 +43,13 @@ const AddUsers = () => {
 
   const getGrandpas = () => {
     axios
-      .get("/api/grandpa/all")
+      .get("/api/grandpa/all", {
+        headers: {
+          Authorization: `Bearer ${auth}`,
+        },
+      })
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         if (res.data) {
           setGrandpas(res.data?.data);
         }
@@ -48,45 +59,71 @@ const AddUsers = () => {
       });
   };
 
-  const createChildrenUI = (e) => {
+  const addChildUI = (e, id) => {
     e.preventDefault();
 
-    setChildren([
-      ...children,
-      {
-        id,
-        name,
-        age,
-        veteran,
-      },
-    ]);
+    // console.log("grandpaId: ", id);
+    if (id) {
+      setChild({
+        ...child,
+        grandpa: id,
+      });
+
+      setChildren([...children, child]);
+    } else {
+      alert("Add grandpa ID first to create its child");
+    }
+  };
+
+  const addNestedChildUI = (e, grandpa_id) => {
+    e.preventDefault();
+
+    // console.log("grandpa_id: ", grandpa_id);
+    if (grandpa_id) {
+      setChild({
+        ...child,
+        grandpa: grandpa_id,
+      });
+
+      setChildren([...children, child]);
+    } else {
+      alert("Add child id first to create its child");
+    }
   };
 
   const onSubmitGrandpaHandler = (e) => {
     e.preventDefault();
 
-    if (!id) {
-      alert("The id field is required");
-    } else if (!name) {
-      alert("The name field is required");
-    } else if (!age) {
-      alert("The age field is required");
-    } else if (!veteran) {
-      alert("The veteran field is required");
+    if (!grandpaId) {
+      alert("The grandpa id field is required");
+    } else if (!grandpaName) {
+      alert("The grandpa name field is required");
+    } else if (!grandpaAge) {
+      alert("The grandpa age field is required");
+    } else if (!grandpaVeteran) {
+      alert("The grandpa veteran field is required");
     } else {
       const data = {
-        id: Number(id),
-        name,
-        age: Number(age),
-        veteran,
+        grandpa: "",
+        id: Number(grandpaId),
+        name: grandpaName,
+        age: Number(grandpaAge),
+        veteran: grandpaVeteran,
       };
 
       axios
-        .post("/api/grandpa", data)
+        .post("/api/grandpa", data, {
+          headers: {
+            Authorization: `Bearer ${auth}`,
+          },
+        })
         .then((res) => {
-          console.log(res?.data);
+          // console.log(res?.data);
           alert("Granpda added successfully!");
-          router.reload();
+          setGrandpaId("");
+          setGrandpaName("");
+          setGrandpaAge("");
+          setGrandpaVeteran("");
         })
         .catch((error) => {
           // console.log(error);
@@ -94,6 +131,60 @@ const AddUsers = () => {
             alert(error.response.data?.message);
           }
         });
+    }
+  };
+
+  const addChildHandler = (childId, childName, childAge, childVeteran) => {
+    if (!childId) {
+      alert("Child id field is required");
+    } else if (!childName) {
+      alert("Child name field is required");
+    } else if (!childAge) {
+      alert("Child age field is required");
+    } else if (!childVeteran) {
+      alert("Child veteran field is required");
+    } else {
+      console.log(">>> Now form submission");
+      const data = {
+        grandpa: grandpaId,
+        id: childId,
+        name: childName,
+        age: childAge,
+        veteran: childVeteran,
+      };
+
+      axios
+        .post("/api/grandpa", data, {
+          headers: {
+            Authorization: `Bearer ${auth}`,
+          },
+        })
+        .then((res) => {
+          // console.log(res?.data);
+          alert("Child with grandpa added successfully!");
+        })
+        .catch((error) => {
+          // console.log(error);
+          if (error.response) {
+            alert(error.response.data?.message);
+          }
+        });
+    }
+  };
+
+  const checkChildIdAsAGranpda = (grandpa_id) => {
+    if (children.length > 0) {
+      const child = children?.filter((child) => child.id === grandpa_id);
+      // console.log("grandpa_id: ", child);
+      if (child) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (grandpaId === grandpa_id) {
+      return true;
+    } else {
+      return false;
     }
   };
 
@@ -158,8 +249,8 @@ const AddUsers = () => {
                   className="p-1 border-[1px] border-black rounded-md w-full"
                   type="number"
                   placeholder="Enter ID"
-                  name={id}
-                  onChange={(e) => setId(e.target.value)}
+                  name={grandpaId}
+                  onChange={(e) => setGrandpaId(e.target.value)}
                 />
               </div>
               <div className="mb-5 w-full sm:w-auto pr-0 sm:pr-5">
@@ -168,8 +259,8 @@ const AddUsers = () => {
                   className="p-1 border-[1px] border-black rounded-md w-full"
                   type="text"
                   placeholder="Enter Name"
-                  name={name}
-                  onChange={(e) => setName(e.target.value)}
+                  name={grandpaName}
+                  onChange={(e) => setGrandpaName(e.target.value)}
                 />
               </div>
               <div className="mb-5 w-full sm:w-auto pr-0 sm:pr-5">
@@ -178,8 +269,8 @@ const AddUsers = () => {
                   className="p-1 border-[1px] border-black rounded-md w-full"
                   type="number"
                   placeholder="Enter Age"
-                  name={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  name={grandpaAge}
+                  onChange={(e) => setGrandpaAge(e.target.value)}
                 />
               </div>
               <div className="mb-5 w-full sm:w-auto pr-0 sm:pr-5">
@@ -188,8 +279,8 @@ const AddUsers = () => {
                   className="p-1 border-[1px] border-black rounded-md w-full"
                   type="text"
                   placeholder="Enter Veteran"
-                  name={veteran}
-                  onChange={(e) => setVeteran(e.target.value)}
+                  name={grandpaVeteran}
+                  onChange={(e) => setGrandpaVeteran(e.target.value)}
                 />
               </div>
               <div className="flex flex-col sm:flex-row items-end">
@@ -204,14 +295,20 @@ const AddUsers = () => {
             <div className="flex w-full justify-end mt-3">
               <button
                 className="bg-datasense-blue text-white py-3 px-5 rounded-md"
-                onClick={(e) => createChildrenUI(e)}
+                onClick={(e) => addChildUI(e, grandpaId)}
               >
                 Add Children
               </button>
             </div>
-            {children.map((child) => {
+            {children.map(({ id, name, age, veteran }) => {
               return (
-                <>
+                <div
+                  className={
+                    grandpaId === id || checkChildIdAsAGranpda(id) === true
+                      ? "mt-2 ml-5"
+                      : "mt-2"
+                  }
+                >
                   <div className="flex flex-col md:flex-row md:justify-between">
                     <div className="md:w-1/4 mb-3 md:mb-0">
                       <p className="font-bold">ID</p>
@@ -220,7 +317,10 @@ const AddUsers = () => {
                         type="text"
                         placeholder="Enter ID"
                         name={id}
-                        onChange={(e) => setId(e.target.value)}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          id = e.target.value;
+                        }}
                       />
                     </div>
                     <div className="md:w-1/4 mb-3 md:mb-0">
@@ -230,7 +330,10 @@ const AddUsers = () => {
                         type="text"
                         placeholder="Enter Name"
                         name={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          name = e.target.value;
+                        }}
                       />
                     </div>
                     <div className="md:w-1/4 mb-3 md:mb-0">
@@ -240,7 +343,10 @@ const AddUsers = () => {
                         type="text"
                         placeholder="Enter Age"
                         name={age}
-                        onChange={(e) => setAge(e.target.value)}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          age = e.target.value;
+                        }}
                       />
                     </div>
                     <div className="md:w-1/4 mb-3 md:mb-0">
@@ -250,11 +356,21 @@ const AddUsers = () => {
                         type="text"
                         placeholder="Enter Veteran"
                         name={veteran}
-                        onChange={(e) => setVeteran(e.target.value)}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          veteran = e.target.value;
+                        }}
                       />
                     </div>
                     <div className="flex items-end">
-                      <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                      <button
+                        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-md text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                        onClick={(e) => {
+                          e.preventDefault();
+
+                          addChildHandler(id, name, age, veteran);
+                        }}
+                      >
                         Save
                       </button>
                     </div>
@@ -262,12 +378,12 @@ const AddUsers = () => {
                   <div className="flex w-full justify-end mt-3">
                     <button
                       className="bg-datasense-blue text-white py-3 px-5 rounded-md"
-                      onClick={(e) => createChildrenUI(e)}
+                      onClick={(e) => addNestedChildUI(e, id)}
                     >
                       Add Children
                     </button>
                   </div>
-                </>
+                </div>
               );
             })}
           </div>

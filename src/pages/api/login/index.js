@@ -1,6 +1,10 @@
 import Register from "../../../../models/register/index.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config({
+  path: "../../../../.env",
+});
 
 export default async function handler(req, res) {
   try {
@@ -24,10 +28,7 @@ export default async function handler(req, res) {
       res.status(409).send({ message: "Invalid Credentials", success: false });
     } else if (user && (await bcrypt.compare(password, user.password))) {
       // Create token
-      const token = jwt.sign(
-        { email: email },
-        "mongodbexpresjsnodejsreactjsiemernstackdeveloper"
-      );
+      const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
 
       // save user token
       user.token = token;

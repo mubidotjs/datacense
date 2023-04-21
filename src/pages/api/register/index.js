@@ -1,6 +1,10 @@
 import Register from "../../../../models/register/index.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+dotenv.config({
+  path: "../../../../.env",
+});
 
 export default async function handler(req, res) {
   try {
@@ -34,10 +38,7 @@ export default async function handler(req, res) {
         encryptedPassword = await bcrypt.hash(password, 10);
 
         // Create token and store token in user array
-        const token = jwt.sign(
-          { email: email },
-          "mongodbexpresjsnodejsreactjsiemernstackdeveloper"
-        );
+        const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
 
         const user = await Register.create({
           ...req.body,
